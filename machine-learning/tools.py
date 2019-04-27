@@ -60,6 +60,8 @@ def TXTtoNumpy(TXTfilename, lableState=False, Print=False, delim = '\t'):
     for i in range(0, n_features):
         floatList[:,i] = [float(line[i]) for line in stringArr]
 
+    labels = np.array(labels).reshape(n_examples, 1)
+
     if lableState:
         return floatList, labels
     else:
