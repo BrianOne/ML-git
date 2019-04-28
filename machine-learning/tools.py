@@ -8,7 +8,8 @@ import numpy as np
 def MeanNormalize(OrigArr):
     pass
 
-
+def sigmoid(inX):
+    return 1.0/(1 + np.exp(-inX))
 
 def FeatureScaling(OrigArr):
     # Preprocessing

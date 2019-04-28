@@ -1,10 +1,69 @@
 
 
 
-# git branch LR
-from tools import  *
+# git branch LR finish
 import numpy as np
 import matplotlib.pyplot as plt
+
+def FeatureScaling(OrigArr):
+    # Preprocessing
+
+    n_examples = OrigArr.shape[0]
+    n_features = OrigArr.shape[1]
+
+    mean = np.zeros(n_features)
+    std = np.zeros(n_features)
+
+    StdMeanNpArr = np.zeros((n_examples, n_features))
+
+    mean = np.average(OrigArr, axis=0).reshape(1, n_features)
+    std = np.std(OrigArr, axis=0).reshape(1, n_features)
+    StdMeanNpArr = (OrigArr - mean) / std
+
+    return StdMeanNpArr, mean, std
+
+def TestScaling(OrigArr, mean, std):
+
+    return (OrigArr - mean) / std
+
+def TXTtoNumpy(TXTfilename, lableState=True, Print=False, delim = '\t'):
+    '''
+
+    :param TXTfilename: Path about TXT file
+    :param lableState: True for have labels of data
+    :param print: to print info about data
+    :param delim: to split '\t'
+    :return:
+    '''
+    TXTfr = open(TXTfilename)
+    TXTList = TXTfr.readlines()
+    stringArr = [line.strip().split(delim) for line in TXTList]
+
+
+    n_examples = len(stringArr)
+
+    if lableState:
+        n_features = len(stringArr[0])-1
+        labels = np.zeros(n_examples)
+        labels = [int(float(line[n_features])) for line in stringArr]
+    else:
+        n_features = len(stringArr[0])
+
+    if Print:
+        print("n_examples: ", n_examples)
+        print("n_features: ", n_features)
+
+    floatList = np.zeros((n_examples, n_features))
+
+    for i in range(0, n_features):
+        floatList[:,i] = [float(line[i]) for line in stringArr]
+
+    labels = np.array(labels).reshape(n_examples, 1)
+
+    if lableState:
+        return floatList, labels
+    else:
+        return floatList
 
 def sigmoid(inX):
     return 1.0/(1 + np.exp(-inX))
@@ -123,11 +182,12 @@ def LR(origData, labels, learning_rate=0.01, n_iterations=200, lamda=1.0, show_c
     for k in range(0, n_iterations):
 
         learning_rate = 1.0/(k+1.0) * 0.01
-        Weights, Cost[k] = BatchGraDescent(npData, labels, Weights, learning_rate, lamda)
-        # kWeightsArr, Cost[k], Weights = StocGraDescent(npData, labels, Weights, learning_rate, lamda, j=k)
-        # WeightsArr[k*n_examples:k*n_examples+n_examples,:] = kWeightsArr
+        # Weights, Cost[k] = BatchGraDescent(npData, labels, Weights, learning_rate, lamda)
+        kWeightsArr, Cost[k], Weights = StocGraDescent(npData, labels, Weights, learning_rate, lamda)
+        WeightsArr[k*n_examples:k*n_examples+n_examples,:] = kWeightsArr
         pass
 
+    # 绘制损失曲线
     if show_cost:
         plt.plot(range(0, n_iterations), Cost)
         plt.show()
@@ -153,13 +213,8 @@ def LR(origData, labels, learning_rate=0.01, n_iterations=200, lamda=1.0, show_c
 
 if __name__ == '__main__':
 
-    Trainfilename = './ML-SourceCode/Ch05/horseColicTraining.txt'
-    Testfilename = './ML-SourceCode/Ch05/horseColicTest.txt'
+    Trainfilename = './testSet.txt'
 
     origData, labels = TXTtoNumpy(Trainfilename, Print=True)
-    TestOrigData, TestLabels = TXTtoNumpy(Testfilename, Print=True)
 
     Weights, mean, std = LR(origData, labels, show_cost=True, show_boundry=True)
-
-    # TestNpData = TestScaling(TestOrigData, mean, std)
-    # Accuracy(TestNpData, TestLabels, Weights)
