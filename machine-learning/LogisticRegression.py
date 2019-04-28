@@ -31,6 +31,8 @@ def Accuracy(npData, labels, Weights):
 
     print("Accuracy: ", accuracy*100, "%")
 
+    return accuracy
+
 def plotBestFit(npData, labels, Weight):
 
     n_examples = npData.shape[0]
@@ -86,8 +88,6 @@ def StocGraDescent(npData, labels, Weights, learning_rate, lamda):
         x = npData[i:i+1,:]
         y = labels[i,:]
 
-        learning_rate = 4/(1.0 + i) +0.01
-
         temp = np.dot(x, Weights)
         h = sigmoid(temp)
         error = (h - y)
@@ -103,12 +103,12 @@ def StocGraDescent(npData, labels, Weights, learning_rate, lamda):
     return WeightsArr, Cost, Weights
 
 
-def LR(origData, labels, learning_rate=0.001, n_iterations=200, lamda=1.0, show_cost=True,
-                    show_boundry = False):
+def LR(origData, labels, learning_rate=0.01, n_iterations=200, lamda=1.0, show_cost=True,
+                    show_boundry = False, show_Weight_learn=False):
 
     #特征缩放
     npData = np.ones((origData.shape[0], origData.shape[1]+1), dtype=float)
-    npData[:,1:] = FeatureScaling(origData)
+    npData[:,1:], mean, std = FeatureScaling(origData)
 
     n_examples = npData.shape[0]
     n_features = npData.shape[1]
@@ -122,9 +122,10 @@ def LR(origData, labels, learning_rate=0.001, n_iterations=200, lamda=1.0, show_
 
     for k in range(0, n_iterations):
 
-        # Weights, Cost[k] = BatchGraDescent(npData, labels, Weights, learning_rate, lamda)
-        kWeightsArr, Cost[k], Weights = StocGraDescent(npData, labels, Weights, learning_rate, lamda)
-        WeightsArr[k*n_examples:k*n_examples+n_examples,:] = kWeightsArr
+        learning_rate = 1.0/(k+1.0) * 0.01
+        Weights, Cost[k] = BatchGraDescent(npData, labels, Weights, learning_rate, lamda)
+        # kWeightsArr, Cost[k], Weights = StocGraDescent(npData, labels, Weights, learning_rate, lamda, j=k)
+        # WeightsArr[k*n_examples:k*n_examples+n_examples,:] = kWeightsArr
         pass
 
     if show_cost:
@@ -137,24 +138,28 @@ def LR(origData, labels, learning_rate=0.001, n_iterations=200, lamda=1.0, show_
 
     accuracy = Accuracy(npData, labels, Weights)
 
-    plt.figure(311)
-    plt.plot(range(0, n_iterations*n_examples), WeightsArr[:, 0])
-    plt.figure(312)
-    plt.plot(range(0, n_iterations*n_examples), WeightsArr[:, 1])
-    plt.figure(313)
-    plt.plot(range(0, n_iterations*n_examples), WeightsArr[:, 2])
-    plt.show()
+    # 权重学习曲线绘制
+    if show_Weight_learn:
+        plt.figure(311)
+        plt.plot(range(0, n_iterations*n_examples), WeightsArr[:, 0])
+        plt.figure(312)
+        plt.plot(range(0, n_iterations*n_examples), WeightsArr[:, 1])
+        plt.figure(313)
+        plt.plot(range(0, n_iterations*n_examples), WeightsArr[:, 2])
+        plt.show()
 
-    return Weights
+    return Weights, mean, std
 
 
 if __name__ == '__main__':
 
-    filename = './ML-SourceCode/Ch05/testSet.txt'
+    Trainfilename = './ML-SourceCode/Ch05/horseColicTraining.txt'
+    Testfilename = './ML-SourceCode/Ch05/horseColicTest.txt'
 
-    origData, labels = TXTtoNumpy(filename, lableState=True, Print=True)
+    origData, labels = TXTtoNumpy(Trainfilename, Print=True)
+    TestOrigData, TestLabels = TXTtoNumpy(Testfilename, Print=True)
 
-    Weights = LR(origData, labels, show_cost=True, show_boundry=True)
+    Weights, mean, std = LR(origData, labels, show_cost=True, show_boundry=True)
 
-
-    print(Weights)
+    # TestNpData = TestScaling(TestOrigData, mean, std)
+    # Accuracy(TestNpData, TestLabels, Weights)

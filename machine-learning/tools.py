@@ -25,10 +25,13 @@ def FeatureScaling(OrigArr):
     std = np.std(OrigArr, axis=0).reshape(1, n_features)
     StdMeanNpArr = (OrigArr - mean) / std
 
-    return StdMeanNpArr
+    return StdMeanNpArr, mean, std
 
+def TestScaling(OrigArr, mean, std):
 
-def TXTtoNumpy(TXTfilename, lableState=False, Print=False, delim = '\t'):
+    return (OrigArr - mean) / std
+
+def TXTtoNumpy(TXTfilename, lableState=True, Print=False, delim = '\t'):
     '''
 
     :param TXTfilename: Path about TXT file
@@ -47,7 +50,7 @@ def TXTtoNumpy(TXTfilename, lableState=False, Print=False, delim = '\t'):
     if lableState:
         n_features = len(stringArr[0])-1
         labels = np.zeros(n_examples)
-        labels = [int(line[n_features]) for line in stringArr]
+        labels = [int(float(line[n_features])) for line in stringArr]
     else:
         n_features = len(stringArr[0])
 
